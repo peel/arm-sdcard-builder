@@ -5,6 +5,8 @@ To make things easier the image does exactly that.
 ** How
 Put an SD card in your MacBook's SD card reader
 *IMPORTANT! Make sure you select the right disk id from =df -h= otherwise your day's about to get bad, sad & ugly*
-Edit =vars.yml= to reflect your disk config from =df -h=. 
+Edit =vars.yml= to reflect your disk config from =df -h=.
+** Perks
+At times OSX might randomly mount back the SD card after mounting into the VM. Make sure to unmount it and rerun provisioning.
 
 
