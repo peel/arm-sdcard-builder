@@ -1,11 +1,12 @@
-* Raspberry Pi ArchLinuxARM SD Card Generator
+* Raspberry Pi Linux Tar SD Card Generator
 ** Why
 OSX does not support EXT filesystems. To flash an SD card for ArchLinuxARM, Alpine etc. a VM has to be started.
 To make things easier the image does exactly that. 
 ** How
 Put an SD card in your MacBook's SD card reader
 *IMPORTANT! Make sure you select the right disk id from =df -h= otherwise your day's about to get bad, sad & ugly*
-Edit =vars.yml= to reflect your disk config from =df -h=.
+In =vars.yml= make sure to reflect your disk config from =df -h=.
+In =vars.yml= set distro download url and download filename.
 ** Perks
 At times OSX might randomly mount back the SD card after mounting into the VM. Make sure to unmount it and rerun provisioning.
 

@@ -1,5 +1,12 @@
 ---
 # disk id on MacBook
 local_disk_id: disk2 
+
 # disk partitions to unmout as seen via df -h
 local_disk_partitions: [1]
+
+#Linux distribution to download
+distro:
+  download_url=http://archlinuxarm.org/os/
+  tar=ArchLinuxARM-rpi-2-latest.tar.gz
+
