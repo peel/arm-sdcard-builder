@@ -1,18 +1,28 @@
 ---
 - hosts: all
   become: yes
-  include_vars:
-    - vars.yml
   vars:
+    # disk id on MacBook
+    - local_disk_id: disk3
+    # disk partitions to unmout as seen via df -h
+    - local_disk_partitions: []
+    #Linux distribution to download
+    - distro_download_url: http://archlinuxarm.org/os/
+    - distro_archive_name: ArchLinuxARM-rpi-2-latest.tar.gz
     - boot_disk: { id: 1, name: boot, fs: vfat }
     - root_disk: { id: 2, name: root, fs: ext4 }
-    - disks: [boot_disk, root_disk]
+    - disks: 
+        - { id: boot_disk.id, name: boot_disk.name, fs: boot_disk.fs }
+        - { id: root_disk.id, name: root_disk.name, fs: root_disk.fs }
     - device_id: sdb
   pre_tasks:
-    - command: diskutil unmountDisk /dev/{{local_disk_id}}s{{item}}
+    - name: Unmount SD Card partitions
+      command: diskutil unmountDisk /dev/{{local_disk_id}}
       delegate_to: 127.0.0.1
       with_items: local_disk_partitions
-    - file: path=/dev/{{local_disk_id}} mode=0777
+      become: sudo
+    - name: Set permissions to SD Card
+      command: chmod 0777 /dev/{{local_disk_id}}
       delegate_to: 127.0.0.1
       become: sudo
   tasks:
@@ -23,20 +33,22 @@
         - dosfstools
         - bsdtar
         - parted
-   - name: Remove previously created partitions
-     command: dd if=/dev/zero of=/dev/{{device_id}}  bs=512  count=1
-   - shell:
-       parted -a optimal /dev/{{device_id}} mkpart primary fat32 1MiB 100MiB &&
-       parted /dev/{{device_id}} set 1 boot on &&
-       parted -a optimal /dev/{{device_id}} mkpart primary ext4 100MiB 100%
-     with_items:
-   - filesystem: fstype={{item.fs}} dev=/dev/{{device_id}}{{item.id}}
-     with_items: disks
-   - mount: name={{item.name}} src=/dev/{{device_id}}{{item.id}} fstype={{item.fs}} state=present
-     with_items: disks
-   - get_url: url={{distro.download_url}}{{distro.tar}} dest=/tmp/{{distro.tar}}
-   - shell: chdir=/tmp bsdtar -xpf {{distro_tar}} -C {{root_disk.name}} && sync
-   - name: Move boot files to the first partition:
-     command: mv {{root_disk.name}}/boot/* {{boot_disk.name}} 
-   - mount: name={{item.name}} state=absent
-     with_items: disks
+    - name: Remove previously created partitions
+      command: dd if=/dev/zero of=/dev/{{device_id}} bs=512 count=1
+    - name: Create partitions
+      shell: parted -s -a optimal /dev/{{device_id}} mklabel msdos mkpart primary fat32 1MiB 100MiB && parted -s /dev/{{device_id}} set 1 boot on && parted -s -a optimal /dev/{{device_id}} mkpart primary ext4 100MiB 100%
+    - name: Format partitions
+      filesystem: fstype={{item.fs}} dev=/dev/{{device_id}}{{item.id}}
+      with_items: disks
+    - name: Mount partitions
+      mount: name={{item.name}} src=/dev/{{device_id}}{{item.id}} fstype={{item.fs}} state=present
+      with_items: disks
+    - name: Download distro
+      get_url: url={{distro_download_url}}{{distro_archive_name}} dest=/tmp/{{distro_archive_name}}
+    - name: Unarchive distro to root disk
+      shell: chdir=/tmp bsdtar -xpf {{distro_archive_name}} -C {{root_disk.name}} && sync
+    - name: Move boot files to the first partition
+      command: mv {{root_disk.name}}/boot/* {{boot_disk.name}} 
+    - name: Unmount disks
+      mount: name={{item.name}} state=absent
+      with_items: disks

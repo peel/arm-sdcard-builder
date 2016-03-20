@@ -3,21 +3,22 @@ Vagrant.configure(2) do |config|
 
   config.vm.provider "virtualbox" do |vb|
     disk = './sd_card.vmdk'
-    physical_disk_id = '2'
+    physical_disk_id = '3'
 
     # Create SD Card mapping to a disk
     unless File.exist?(disk)
       vb.customize [
-        'createrawvmdk', :id,
-        '--filename', disk,
-        '--rawdisk', "/dev/disk#{physical_disk_id}"
+        'internalcommands',
+        'createrawvmdk',
+        '-filename', disk,
+        '-rawdisk', "/dev/disk#{physical_disk_id}"
         ]
     end
 
     # Attach SD Card image to the VM
     vb.customize [
       'storageattach', :id,
-      '--storagectl', 'SATA Controller',
+      '--storagectl', 'SATAController',
       '--port', 1,
       '--device', 0,
       '--type', 'hdd',
@@ -27,6 +28,7 @@ Vagrant.configure(2) do |config|
 
   config.vm.provision "ansible" do |ansible|
     ansible.playbook = "playbook.yml"
+    ansible.ask_sudo_pass = true
   end
 
 end
