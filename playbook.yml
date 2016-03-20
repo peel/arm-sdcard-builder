@@ -1,10 +1,21 @@
 ---
 - hosts: all
+  become: yes
+  include_vars:
+    - vars.yml
   vars:
     - boot_disk: { id: 1, name: boot, fs: vfat }
     - root_disk: { id: 2, name: root, fs: ext4 }
     - disks: [boot_disk, root_disk]
     - distro_tar: ArchLinuxARM-rpi-2-latest.tar.gz
+    - device_id: sdb
+  pre_tasks:
+    - command: diskutil unmountDisk /dev/{{local_disk_id}}s{{item}}
+      delegate_to: 127.0.0.1
+      with_items: local_disk_partitions
+    - file: path=/dev/{{local_disk_id}} mode=0777
+      delegate_to: 127.0.0.1
+      become: sudo
   tasks:
     - apt: update_cache=yes
     - name: Install packages
@@ -14,15 +25,15 @@
         - bsdtar
         - parted
    - name: Remove previously created partitions
-     command: dd if=/dev/zero of=/dev/sdb  bs=512  count=1
+     command: dd if=/dev/zero of=/dev/{{device_id}}  bs=512  count=1
    - shell:
-       parted -a optimal /dev/sdb mkpart primary fat32 1MiB 100MiB &&
-       parted /dev/sdb set 1 boot on &&
-       parted -a optimal /dev/sdb mkpart primary ext4 100MiB 100%
+       parted -a optimal /dev/{{device_id}} mkpart primary fat32 1MiB 100MiB &&
+       parted /dev/{{device_id}} set 1 boot on &&
+       parted -a optimal /dev/{{device_id}} mkpart primary ext4 100MiB 100%
      with_items:
-   - filesystem: fstype={{item.fs}} dev=/dev/sdb{{item.id}}
+   - filesystem: fstype={{item.fs}} dev=/dev/{{device_id}}{{item.id}}
      with_items: disks
-   - mount: name={{item.name}} src=/dev/sdb{{item.id}} fstype={{item.fs}} state=present
+   - mount: name={{item.name}} src=/dev/{{device_id}}{{item.id}} fstype={{item.fs}} state=present
      with_items: disks
    - get_url: url=http://archlinuxarm.org/os/{{distro.tar}} dest=/tmp/{{distro.tar}}
    - shell: chdir=/tmp bsdtar -xpf {{distro_tar}} -C {{root_disk.name}} && sync

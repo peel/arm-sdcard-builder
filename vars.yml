@@ -1,0 +1,5 @@
+---
+# disk id on MacBook
+local_disk_id: disk2 
+# disk partitions to unmout as seen via df -h
+local_disk_partitions: [1]
