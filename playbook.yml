@@ -1,6 +1,7 @@
 ---
 - hosts: all
   become: yes
+  remote_user: root
   vars:
     # disk id on MacBook
     - local_disk_id: disk3
@@ -41,12 +42,12 @@
       filesystem: fstype={{item.fs}} dev=/dev/{{device_id}}{{item.id}}
       with_items: disks
     - name: Mount partitions
-      mount: name={{item.name}} src=/dev/{{device_id}}{{item.id}} fstype={{item.fs}} state=present
+      mount: name=/tmp/{{item.name}} src=/dev/{{device_id}}{{item.id}} fstype={{item.fs}} state=present
       with_items: disks
     - name: Download distro
-      get_url: url={{distro_download_url}}{{distro_archive_name}} dest=/tmp/{{distro_archive_name}}
+      get_url: url={{distro_download_url}}{{distro_archive_name}}.tar.gz dest=/tmp/{{distro_archive_name}}.tar.gz
     - name: Unarchive distro to root disk
-      shell: chdir=/tmp bsdtar -xpf {{distro_archive_name}}.tar.gz -C {{root_disk.name}} && sync
+      shell: chdir=/tmp sudo su && bsdtar -xpf {{distro_archive_name}}.tar.gz -C /tmp/{{root_disk.name}} && sync
     - name: Move boot files to the first partition
       command: mv {{root_disk.name}}/boot/* {{boot_disk.name}} 
     - name: Unmount disks
