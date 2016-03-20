@@ -1,0 +1,32 @@
+---
+- hosts: all
+  vars:
+    - boot_disk: { id: 1, name: boot, fs: vfat }
+    - root_disk: { id: 2, name: root, fs: ext4 }
+    - disks: [boot_disk, root_disk]
+    - distro_tar: ArchLinuxARM-rpi-2-latest.tar.gz
+  tasks:
+    - apt: update_cache=yes
+    - name: Install packages
+      package: name={{item}} state=latest
+      with_items:
+        - dosfstools
+        - bsdtar
+        - parted
+   - name: Remove previously created partitions
+     command: dd if=/dev/zero of=/dev/sdb  bs=512  count=1
+   - shell:
+       parted -a optimal /dev/sdb mkpart primary fat32 1MiB 100MiB &&
+       parted /dev/sdb set 1 boot on &&
+       parted -a optimal /dev/sdb mkpart primary ext4 100MiB 100%
+     with_items:
+   - filesystem: fstype={{item.fs}} dev=/dev/sdb{{item.id}}
+     with_items: disks
+   - mount: name={{item.name}} src=/dev/sdb{{item.id}} fstype={{item.fs}} state=present
+     with_items: disks
+   - get_url: url=http://archlinuxarm.org/os/{{distro.tar}} dest=/tmp/{{distro.tar}}
+   - shell: chdir=/tmp bsdtar -xpf {{distro_tar}} -C {{root_disk.name}} && sync
+   - name: Move boot files to the first partition:
+     command: mv {{root_disk.name}}/boot/* {{boot_disk.name}} 
+   - mount: name={{item.name}} state=absent
+     with_items: disks
