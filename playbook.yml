@@ -13,8 +13,8 @@
     - boot_disk: { id: 1, name: boot, fs: vfat }
     - root_disk: { id: 2, name: root, fs: ext4 }
     - disks: 
-        - { id: boot_disk.id, name: boot_disk.name, fs: boot_disk.fs }
-        - { id: root_disk.id, name: root_disk.name, fs: root_disk.fs }
+        - { id: "{{boot_disk.id}}", name: "{{boot_disk.name}}", fs: "{{boot_disk.fs}}" }
+        - { id: "{{root_disk.id}}", name: "{{root_disk.name}}", fs: "{{root_disk.fs}}" }
     - device_id: sdb
   pre_tasks:
     - name: Unmount SD Card partitions
@@ -37,21 +37,22 @@
     - name: Remove previously created partitions
       command: dd if=/dev/zero of=/dev/{{device_id}} bs=512 count=1
     - name: Create partitions
-      shell: parted -s -a optimal /dev/{{device_id}} mklabel msdos mkpart primary fat32 1MiB 100MiB && parted -s /dev/{{device_id}} set 1 boot on && parted -s -a optimal /dev/{{device_id}} mkpart primary ext4 100MiB 100%
+      shell: parted -a optimal /dev/{{device_id}} -- mklabel msdos mkpart primary fat32 1MiB 100MiB mkpart primary ext4 100MiB -1s && parted /dev/{{device_id}} set 1 boot on
     - name: Format partitions
-      filesystem: fstype={{item.fs}} dev=/dev/{{device_id}}{{item.id}}
+      command: "mkfs.{{item.fs}} /dev/{{device_id}}{{item.id}}"
       with_items: disks
     - name: Mount partitions
-      mount: name=/tmp/{{item.name}} src=/dev/{{device_id}}{{item.id}} fstype={{item.fs}} state=present
+      mount: name=/tmp/{{item.name}} src=/dev/{{device_id}}{{item.id}} fstype={{item.fs}} state=mounted
       with_items: disks
     - name: Download distro
       get_url: url={{distro_download_url}}{{distro_archive_name}}.tar.gz dest=/tmp/{{distro_archive_name}}.tar.gz
     - name: Unarchive distro to root disk
-      shell: chdir=/tmp sudo su && bsdtar -xpf {{distro_archive_name}}.tar.gz -C /tmp/{{root_disk.name}} && sync
+      shell: su -c "bsdtar -xpf /tmp/{{distro_archive_name}}.tar.gz -C /tmp/{{root_disk.name}}" && sync
+      become_user: root
     - name: Move boot files to the first partition
-      command: mv {{root_disk.name}}/boot/* {{boot_disk.name}} 
+      command: mv /tmp/{{root_disk.name}}/boot/* /tmp/{{boot_disk.name}} 
     - name: Unmount disks
-      mount: name={{item.name}} state=absent
+      mount: name={{item.name}} state=unmounted
       with_items: disks
     - name: Generate image copy
       command: dd if=/dev/{{device_id}} of=/vagrant/{{distro_archive_name}}.img bs=1M
