@@ -1,9 +1,29 @@
+require 'getoptlong'
+
+opts = GetoptLong.new(
+  [ '--disk_id', GetoptLong::OPTIONAL_ARGUMENT ]
+)
+
+disk_id=''
+opts.each do |opt, arg|
+  case opt
+  when '--disk_id'
+    disk_id = arg
+  end
+end
+
+if disk_id != ''
+  system("
+    diskutil unmountDisk /dev/#{disk_id}
+    sudo chmod 0777 /dev/#{disk_id}
+  ")
+end
+
 Vagrant.configure(2) do |config|
   config.vm.box = "ubuntu/trusty64"
 
   config.vm.provider "virtualbox" do |vb|
     disk = './sd_card.vmdk'
-    physical_disk_id = '3'
 
     # Create SD Card mapping to a disk
     unless File.exist?(disk)
@@ -11,7 +31,7 @@ Vagrant.configure(2) do |config|
         'internalcommands',
         'createrawvmdk',
         '-filename', disk,
-        '-rawdisk', "/dev/disk#{physical_disk_id}"
+        '-rawdisk', "/dev/#{disk_id}"
         ]
     end
 
@@ -30,6 +50,6 @@ Vagrant.configure(2) do |config|
     ansible.playbook = "playbook.yml"
     ansible.verbose = "vv"
     ansible.ask_sudo_pass = true
+    ansible.extra_vars = {local_disk_id: "#{disk_id}" }
   end
-
 end

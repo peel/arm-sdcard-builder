@@ -4,7 +4,6 @@
   remote_user: root
   vars:
     # disk id on MacBook
-    - local_disk_id: disk3
     # disk partitions to unmout as seen via df -h
     - local_disk_partitions: []
     #Linux distribution to download
@@ -16,16 +15,6 @@
         - { id: "{{boot_disk.id}}", name: "{{boot_disk.name}}", fs: "{{boot_disk.fs}}" }
         - { id: "{{root_disk.id}}", name: "{{root_disk.name}}", fs: "{{root_disk.fs}}" }
     - device_id: sdb
-  pre_tasks:
-    - name: Unmount SD Card partitions
-      command: diskutil unmountDisk /dev/{{local_disk_id}}
-      delegate_to: 127.0.0.1
-      with_items: local_disk_partitions
-      become: sudo
-    - name: Set permissions to SD Card
-      command: chmod 0777 /dev/{{local_disk_id}}
-      delegate_to: 127.0.0.1
-      become: sudo
   tasks:
     - apt: update_cache=yes
     - name: Install packages
