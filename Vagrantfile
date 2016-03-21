@@ -13,10 +13,10 @@ opts.each do |opt, arg|
 end
 
 if disk_id != ''
-  system("
-    diskutil unmountDisk /dev/#{disk_id}
-    sudo chmod 0777 /dev/#{disk_id}
-  ")
+  mount_point_dir = '/dev'
+  partitions = Dir.entries(mount_point_dir).select{|d| d.start_with?("#{disk_id}s")}
+  partitions.each{|p| system("diskutil unmountDisk #{mount_point_dir}/#{disk_id}")}
+  system("sudo chmod 0777 #{mount_point_dir}/#{disk_id}")
 end
 
 Vagrant.configure(2) do |config|
@@ -48,7 +48,7 @@ Vagrant.configure(2) do |config|
 
   config.vm.provision "ansible" do |ansible|
     ansible.playbook = "playbook.yml"
-    ansible.verbose = "vv"
+    # ansible.verbose = "vv"
     ansible.ask_sudo_pass = true
     ansible.extra_vars = {local_disk_id: "#{disk_id}" }
   end

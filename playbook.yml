@@ -3,7 +3,6 @@
   become: yes
   remote_user: root
   vars:
-    # disk id on MacBook
     # disk partitions to unmout as seen via df -h
     - local_disk_partitions: []
     #Linux distribution to download
@@ -34,9 +33,9 @@
       mount: name=/tmp/{{item.name}} src=/dev/{{device_id}}{{item.id}} fstype={{item.fs}} state=mounted
       with_items: disks
     - name: Download distro
-      get_url: url={{distro_download_url}}{{distro_archive_name}}.tar.gz dest=/tmp/{{distro_archive_name}}.tar.gz
+      get_url: url={{distro_download_url}}{{distro_archive_name}}.tar.gz dest=/vagrant/{{distro_archive_name}}.tar.gz
     - name: Unarchive distro to root disk
-      shell: su -c "bsdtar -xpf /tmp/{{distro_archive_name}}.tar.gz -C /tmp/{{root_disk.name}}" && sync
+      shell: su -c "bsdtar -xpf /vagrant/{{distro_archive_name}}.tar.gz -C /tmp/{{root_disk.name}}" && sync
       become_user: root
     - name: Move boot files to the first partition
       command: mv /tmp/{{root_disk.name}}/boot/* /tmp/{{boot_disk.name}} 
