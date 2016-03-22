@@ -36,7 +36,7 @@
     - name: Unarchive distro to root disk
       shell: su -c "bsdtar -xpf /vagrant/{{distro_archive_name}}.tar.gz -C /tmp/{{root_disk.name}}" && sync
       become_user: root
-    - name: Move boot files to the first partition
+    - name: Copy boot files to the first partition
       shell: mv /tmp/{{root_disk.name}}/boot/* /tmp/{{boot_disk.name}}
       become_user: root
     - name: Unmount disks
@@ -44,7 +44,8 @@
       with_items: disks
     - name: Generate image copy
       command: dd if=/dev/{{device_id}} of=/vagrant/{{distro_archive_name}}.img bs=1M
+      when: make_image_file
   post_tasks:
-    - command: "kill -SIGSTOP {{diskarbitrationd_pid}}"
-      become: sudo
+    - name: re-enable diskarbitrationd
+      command: "sudo kill -SIGCONT {{diskarbitrationd_pid}}"
       delegate_to: 127.0.0.1
