@@ -51,7 +51,11 @@ Vagrant.configure(2) do |config|
   config.vm.provision "ansible" do |ansible|
     ansible.playbook = "playbook.yml"
     # ansible.verbose = "vv"
+    ansible.start_at_task = "Move boot files to the first partition"
     ansible.ask_sudo_pass = true
-    ansible.extra_vars = {local_disk_id: "#{disk_id}" }
+    ansible.extra_vars = {
+      local_disk_id: "#{disk_id}",
+      diskarbitrationd_pid: "#{pid}"
+    }
   end
 end
