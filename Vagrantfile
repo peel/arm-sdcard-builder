@@ -14,9 +14,11 @@ end
 
 if disk_id != ''
   mount_point_dir = '/dev'
-  partitions = Dir.entries(mount_point_dir).select{|d| d.start_with?("#{disk_id}s")}
-  partitions.each{|p| system("diskutil unmountDisk #{mount_point_dir}/#{disk_id}")}
+  pid = `sudo launchctl list | grep diskarbitrationd | awk '{print $1}'`.strip
+  Dir.entries(mount_point_dir).select{|d| d.start_with?("#{disk_id}s")}
+    .each{|p| system("diskutil unmountDisk #{mount_point_dir}/#{disk_id}")}
   system("sudo chmod 0777 #{mount_point_dir}/#{disk_id}")
+  system("sudo kill -SIGSTOP #{pid}")
 end
 
 Vagrant.configure(2) do |config|

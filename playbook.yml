@@ -1,7 +1,6 @@
 ---
 - hosts: all
   become: yes
-  remote_user: root
   vars:
     # disk partitions to unmout as seen via df -h
     - local_disk_partitions: []
