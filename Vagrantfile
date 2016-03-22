@@ -1,13 +1,17 @@
 require 'getoptlong'
 
 opts = GetoptLong.new(
-  [ '--disk_id', GetoptLong::OPTIONAL_ARGUMENT ]
+  [ '--with-image', '-i', GetoptLong::NO_ARGUMENT ],
+  [ '--disk-id', '-d', GetoptLong::OPTIONAL_ARGUMENT ]
 )
 
 disk_id=''
+make_image_file=false
 opts.each do |opt, arg|
   case opt
-  when '--disk_id'
+  when '--with-image'
+    make_img_file = true
+  when '--disk-id'
     disk_id = arg
   end
 end
@@ -15,6 +19,7 @@ end
 if disk_id != ''
   mount_point_dir = '/dev'
   pid = `sudo launchctl list | grep diskarbitrationd | awk '{print $1}'`.strip
+  system("sudo kill -SIGCONT #{pid}")
   Dir.entries(mount_point_dir).select{|d| d.start_with?("#{disk_id}s")}
     .each{|p| system("diskutil unmountDisk #{mount_point_dir}/#{disk_id}")}
   system("sudo chmod 0777 #{mount_point_dir}/#{disk_id}")
@@ -51,11 +56,12 @@ Vagrant.configure(2) do |config|
   config.vm.provision "ansible" do |ansible|
     ansible.playbook = "playbook.yml"
     # ansible.verbose = "vv"
-    ansible.start_at_task = "Move boot files to the first partition"
+    # ansible.start_at_task = "Copy boot files to the first partition"
     ansible.ask_sudo_pass = true
     ansible.extra_vars = {
       local_disk_id: "#{disk_id}",
-      diskarbitrationd_pid: "#{pid}"
+      diskarbitrationd_pid: "#{pid}",
+      make_image_file: "#{make_image_file}"
     }
   end
 end
