@@ -5,9 +5,9 @@ To make things easier the image does exactly that.
 ** How
 Put an SD card in your MacBook's SD card reader
 *IMPORTANT! Make sure you select the right disk id from =df -h= otherwise your day's about to get bad, sad & ugly*
-Execute =vagrant --disk-id={{DISK_ID_WITHOUT_/DEV/}} -- up= (ie. =vagrant --disk-id=disk3 -- up= or =vagrant -d=disk3 -- up=)
+Execute =vagrant --disk-id={{DISK_ID_WITHOUT_/DEV/}} -- up= (ie. =vagrant --disk-id=disk3 -- up=)
 When running with =vagrant up= (or =vagrant provision=) you will be asked for a *LOCAL* (MacBook) root password
-Aside from a flashed SD card you can get an =.img= file as a copy by using =--with-image= (=-w=) switch (ie. =vagrant -w -d=disk3 -- up=).
+Aside from a flashed SD card you can get an =.img= file as a copy by using =--with-image= switch.
 ** Perks
 OSX diskarbitrationd service monitors ports for new disks effectively remounting sd card on changes to VM.
 It is therfore disabled before creating the machine and enabled after the creation.

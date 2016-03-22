@@ -1,8 +1,8 @@
 require 'getoptlong'
 
 opts = GetoptLong.new(
-  [ '--with-image', '-i', GetoptLong::NO_ARGUMENT ],
-  [ '--disk-id', '-d', GetoptLong::OPTIONAL_ARGUMENT ]
+  [ '--with-image', GetoptLong::NO_ARGUMENT ],
+  [ '--disk-id', GetoptLong::OPTIONAL_ARGUMENT ]
 )
 
 disk_id=''
@@ -10,7 +10,7 @@ make_image_file=false
 opts.each do |opt, arg|
   case opt
   when '--with-image'
-    make_img_file = true
+    make_image_file = true
   when '--disk-id'
     disk_id = arg
   end
