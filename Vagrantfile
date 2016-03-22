@@ -1,9 +1,31 @@
+require 'getoptlong'
+
+opts = GetoptLong.new(
+  [ '--disk_id', GetoptLong::OPTIONAL_ARGUMENT ]
+)
+
+disk_id=''
+opts.each do |opt, arg|
+  case opt
+  when '--disk_id'
+    disk_id = arg
+  end
+end
+
+if disk_id != ''
+  mount_point_dir = '/dev'
+  pid = `sudo launchctl list | grep diskarbitrationd | awk '{print $1}'`.strip
+  Dir.entries(mount_point_dir).select{|d| d.start_with?("#{disk_id}s")}
+    .each{|p| system("diskutil unmountDisk #{mount_point_dir}/#{disk_id}")}
+  system("sudo chmod 0777 #{mount_point_dir}/#{disk_id}")
+  system("sudo kill -SIGSTOP #{pid}")
+end
+
 Vagrant.configure(2) do |config|
   config.vm.box = "ubuntu/trusty64"
 
   config.vm.provider "virtualbox" do |vb|
     disk = './sd_card.vmdk'
-    physical_disk_id = '3'
 
     # Create SD Card mapping to a disk
     unless File.exist?(disk)
@@ -11,7 +33,7 @@ Vagrant.configure(2) do |config|
         'internalcommands',
         'createrawvmdk',
         '-filename', disk,
-        '-rawdisk', "/dev/disk#{physical_disk_id}"
+        '-rawdisk', "/dev/#{disk_id}"
         ]
     end
 
@@ -28,8 +50,12 @@ Vagrant.configure(2) do |config|
 
   config.vm.provision "ansible" do |ansible|
     ansible.playbook = "playbook.yml"
-    ansible.verbose = "vv"
+    # ansible.verbose = "vv"
+    ansible.start_at_task = "Move boot files to the first partition"
     ansible.ask_sudo_pass = true
+    ansible.extra_vars = {
+      local_disk_id: "#{disk_id}",
+      diskarbitrationd_pid: "#{pid}"
+    }
   end
-
 end

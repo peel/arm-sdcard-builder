@@ -5,9 +5,9 @@ To make things easier the image does exactly that.
 ** How
 Put an SD card in your MacBook's SD card reader
 *IMPORTANT! Make sure you select the right disk id from =df -h= otherwise your day's about to get bad, sad & ugly*
-In =playbook.yml= make sure to reflect your disk config from =df -h=.
-In =playbook.yml= set distro download url and download filename.
+Execute =vagrant --disk_id={{DISK_ID_WITHOUT_/DEV/}} -- up= (ie. =vagrant --disk_id=disk3 -- up=)
 When running with =vagrant up= (or =vagrant provision=) you will be asked for a *LOCAL* (MacBook) root password
+Aside from a flashed SD card you'll get an =.img= file as a copy.
 ** Perks
 At times OSX might randomly mount back the SD card after mounting into the VM. Make sure to unmount it and rerun provisioning.
 
