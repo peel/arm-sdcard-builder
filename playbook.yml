@@ -2,8 +2,6 @@
 - hosts: all
   become: yes
   vars:
-    # disk partitions to unmout as seen via df -h
-    - local_disk_partitions: []
     #Linux distribution to download
     - distro_download_url: http://archlinuxarm.org/os/
     - distro_archive_name: ArchLinuxARM-rpi-2-latest
@@ -45,7 +43,3 @@
     - name: Generate image copy
       command: dd if=/dev/{{device_id}} of=/vagrant/{{distro_archive_name}}.img bs=1M
       when: make_image_file
-  post_tasks:
-    - name: re-enable diskarbitrationd
-      command: "sudo kill -SIGCONT {{diskarbitrationd_pid}}"
-      delegate_to: 127.0.0.1

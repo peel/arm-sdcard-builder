@@ -53,15 +53,16 @@ Vagrant.configure(2) do |config|
     ]
   end
 
-  config.vm.provision "ansible" do |ansible|
+  config.vm.provision "ansible_local" do |ansible|
     ansible.playbook = "playbook.yml"
     # ansible.verbose = "vv"
     # ansible.start_at_task = "Copy boot files to the first partition"
     ansible.ask_sudo_pass = true
     ansible.extra_vars = {
       local_disk_id: "#{disk_id}",
-      diskarbitrationd_pid: "#{pid}",
       make_image_file: "#{make_image_file}"
     }
   end
+  config.vm.provision "shell", inline: "sudo kill -SIGCONT #{pid}"
+
 end
