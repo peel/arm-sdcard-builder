@@ -1,26 +1,7 @@
 * Raspberry Pi Linux Tar SD Card Generator
 ** Why
-OSX does not support EXT filesystems. To flash an SD card for ArchLinuxARM, Alpine etc. a VM has to be started.
-To make things easier the image does exactly that. 
+Installing Linux from tar archives is cumbersome. 
+Then also OSX does not support EXT filesystems. For that on OSX to flash an SD card for ArchLinuxARM, Alpine etc. a VM has to be started.
+To make things easier the Docker image does exactly that. Makes it easy, fast and reproducible to generate and flash image to sd card on Mac and Linux.
 ** How
-Put an SD card in your MacBook's SD card reader
-*IMPORTANT! Make sure you select the right disk id from =df -h= otherwise your day's about to get bad, sad & ugly*
-Execute =vagrant --disk-id={{DISK_ID_WITHOUT_/DEV/}} -- up= (ie. =vagrant --disk-id=disk3 -- up=)
-When running with =vagrant up= (or =vagrant provision=) you will be asked for a *LOCAL* (MacBook) root password
-Aside from a flashed SD card you can get an =.img= file as a copy by using =--with-image= switch.
-** Perks
-OSX diskarbitrationd service monitors ports for new disks effectively remounting sd card on changes to VM.
-It is therfore disabled before creating the machine and enabled after the creation.
-Helpful commands:
-#+BEGIN_SRC
-# Find diskarbitrationd pid
-sudo launchctl list | grep diskarbitrationd | awk '{print $1}'
-
-# Stop service
-sudo kill -SIGSTOP ${pid}
-
-# Start service
-sudo kill -SIGCONT ${pid}
-#+END_SRC
-
-
+`docker run --privileged --device=/dev/diskX:/dev/sdb -v .:/tmp/img --rm peelsky/rpi-tar-to-img`
