@@ -1,9 +1,11 @@
 ID := $(shell losetup -f)
+TARGET_DIR := "/backup"
 
-### AUTOMATED RUN
-default: setup build image
+### REMOTE RUN
+default: build
 
 build:
+		dd if=/dev/zero of=sdcard.img bs=1M count=1850
 		losetup ${ID} sdcard.img
 		parted ${ID} mktable msdos && parted -a optim ${ID} mkpart primary fat32 1MiB 100MiB && parted ${ID} set 1 boot on && parted -a optimal ${ID} mkpart primary ext4 100MiB 100%
 		mkfs.vfat ${ID}p1
@@ -18,7 +20,8 @@ build:
 		umount boot root
 		losetup -d ${ID}
 
-mac:
-		docker-machine ssh default "docker run --privileged -v $(pwd):/backup peelsky/rpi-arch-tar-to-img:20160306 && tar cvf /backup/sdcard.tar.gz /app/sdcard.img"
+copy: default
+		cp sdcard.img ${TARGET_DIR}/
 
-
+tar: default
+		tar -cvzf ${TARGET_DIR}/sdcard.img.tgz /app/sdcard.img

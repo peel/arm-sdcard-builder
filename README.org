@@ -4,4 +4,10 @@ Installing Linux from tar archives is cumbersome.
 Then also OSX does not support EXT filesystems. For that on OSX to flash an SD card for ArchLinuxARM, Alpine etc. a VM has to be started.
 To make things easier the Docker image does exactly that. Makes it easy, fast and reproducible to generate and flash image to sd card on Mac and Linux.
 ** How
-`docker run --privileged --device=/dev/diskX:/dev/sdb -v .:/tmp/img --rm peelsky/rpi-tar-to-img`
+To get an `.img` for flashing on an SD card execute:
+=docker run --rm --privileged -v $(pwd):/backup peelsky/rpi-tar-to-img make copy=
+To get an `.tgz` archive as a backup:
+=docker run --rm --privileged -v $(pwd):/backup peelsky/rpi-tar-to-img make tar=
+
+/SIDE NOTE:/ To copy image onto an SD card execute from OSX:
+=sudo dd bs=1m if=sdcard.img of={{DISK_ID}}=
