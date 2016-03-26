@@ -1,6 +1,6 @@
 ID := $(shell losetup -f)
-TARGET_DIR := "/backup"
-PLATFORM := raspberry
+TARGET_DIR := /backup
+PLATFORM := rp3
 
 default: prebuild $(PLATFORM) postbuild
 
@@ -12,7 +12,7 @@ postbuild:
 		losetup -d ${ID}
 		umount root
 
-oc2:
+odroid:
 		parted -a optimal ${ID} mkpart primary ext4 8MiB 100%
 		mkfs.ext4 ${ID}p1
 		mkdir root
@@ -20,7 +20,11 @@ oc2:
 		tar -xvf distro.tar.gz -C root
 		sh root/boot/fusing.sh ${ID}
 
-rpi3:
+oc1: odroid
+
+oc2: odroid
+
+rp2:
 		parted ${ID} mktable msdos && parted -a optim ${ID} mkpart primary fat32 1MiB 100MiB && parted ${ID} set 1 boot on && parted -a optimal ${ID} mkpart primary ext4 100MiB 100%
 		mkfs.vfat ${ID}p1
 		mkdir boot
@@ -32,6 +36,8 @@ rpi3:
 		sync
 		mv root/boot/* boot
 		umount boot
+
+rp3: rp2
 
 copy: default
 		cp sdcard.img ${TARGET_DIR}/
