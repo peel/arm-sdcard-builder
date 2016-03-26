@@ -5,11 +5,11 @@ Then also OSX does not support EXT filesystems. For that on OSX to flash an SD c
 To make things easier the Docker image does exactly that. Makes it easy, fast and reproducible to generate and flash image to sd card on Mac and Linux.
 ** How
 To get an `.img` for flashing on an SD card execute:
-=docker run --rm --privileged -v $(pwd):/backup peelsky/rpi-sdcard-builder make copy=
+=docker run --rm --privileged -v $(pwd):/backup peelsky/rpi-sdcard-builder make PLATFORM=rpi3 copy=
 To get an `.tgz` archive as a backup:
-=docker run --rm --privileged -v $(pwd):/backup peelsky/rpi-sdcard-builder make tar=
+=docker run --rm --privileged -v $(pwd):/backup peelsky/rpi-sdcard-builder make PLATFORM=rpi3 tar=
 To get an image of another distribution on an SD card, download the distro and execute:
-=docker run --rm --privileged -v $(pwd):/backup -v {{PATH TO A TGZ}}:/app/distro.tar.gz peelsky/rpi-sdcard-builder make copy=
+=docker run --rm --privileged -v $(pwd):/backup -v {{PATH TO A TGZ}}:/app/distro.tar.gz peelsky/rpi-sdcard-builder make PLATFORM={{PLATFORM_TYPE}} copy=
 
 /SIDE NOTE:/ To copy image onto an SD card execute from OSX:
 =sudo dd bs=1m if=sdcard.img of={{DISK_ID}}=
