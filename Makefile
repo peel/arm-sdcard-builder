@@ -1,6 +1,6 @@
 ID := $(shell losetup -f)
-TARGET_DIR := "/backup"
-PLATFORM := raspberry
+TARGET_DIR := /backup
+PLATFORM := rp3
 
 default: prebuild $(PLATFORM) postbuild
 
@@ -20,7 +20,7 @@ oc2:
 		tar -xvf distro.tar.gz -C root
 		sh root/boot/fusing.sh ${ID}
 
-rpi3:
+rp3:
 		parted ${ID} mktable msdos && parted -a optim ${ID} mkpart primary fat32 1MiB 100MiB && parted ${ID} set 1 boot on && parted -a optimal ${ID} mkpart primary ext4 100MiB 100%
 		mkfs.vfat ${ID}p1
 		mkdir boot

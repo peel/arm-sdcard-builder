@@ -10,4 +10,4 @@ RUN pacman -Syu --noconfirm dosfstools parted make &&\
 
 ADD Makefile /app/
 
-CMD make PLATFORM=rpi3
+CMD make
