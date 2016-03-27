@@ -1,6 +1,7 @@
 ID := $(shell losetup -f)
 TARGET_DIR := /backup
 PLATFORM := rp3
+DISTRO_TAR_URL := http://archlinuxarm.org/os/ArchLinuxARM-rpi-2-latest.tar.gz
 
 default: prebuild $(PLATFORM) postbuild
 
@@ -44,3 +45,9 @@ copy: default
 
 tar: default
 		tar -cvzf ${TARGET_DIR}/sdcard.img.tgz /app/sdcard.img
+
+linux: download default
+
+download:
+		curl -o distro.tar.gz -L ${DISTRO_TAR_URL}
+
