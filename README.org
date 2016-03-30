@@ -6,17 +6,18 @@ To make things easier the Docker image does exactly that. Makes it easy, fast an
 ** How
 *** Mac OSX
 #+BEGIN_SRC
-docker run --rm --privileged
-           -v $(pwd):/backup
-           [-v SomeDistro.tar.gz:/app/distro.tar.gz]
-           peelsky/rpi-sdcard-builder
-           [PLATFORM=(rp2|rp3|oc1|oc2)]
-           (copy|tar)
+make [DISTRO_TAR_URL=http://...] [PLATFORM=(rpi-2|rpi-3|odroid-c1|odroid-c2)] mac [tar]
 #+END_SRC
 
-=(-v SomeDistro.tar.gz:/app/distro.tar.gz)= - use another distro tar archive (default: arch for rp2/rp3)
-=[PLATFORM]= - sets image destitantion platform (default: rp3)
+=[PLATFORM]= - sets image destitantion platform (default: rpi-3)
+=[DISTRO_TAR_URL]= - (NOT NEEDED WHEN USING ARCHlINUXARM) a fully qualified URL to your distro's tar.gz (ie. http://archlinuxarm.org/os/ArchLinuxARM-odroid-c2-latest.tar.gz)
 =(copy|tar)= - whether an img or tar.gz copy shall be created; mandatory when using =PLATFORM= parameter
+
+Or w/o cloning
+#+BEGIN_SRC
+curl -o distro.tar.gz -L ${DISTRO_TAR_URL}
+docker run --privileged -e PLATFORM=${PLATFORM}  -v $(pwd):/backup -v $(pwd)/distro.tar.gz:/app/distro.tar.gz -it peelsky/arm-sdcard-builder -e copy
+#+END_SRC
 
 **** Examples:
 To get an `.img` for flashing on an SD card execute:
@@ -27,6 +28,13 @@ To get an `.tgz` archive as a backup:
 
 To get an image of another distribution on an SD card, download the distro and execute:
 =docker run --rm --privileged -v $(pwd):/backup -v {{PATH TO A TGZ}}:/app/distro.tar.gz peelsky/rpi-sdcard-builder PLATFORM={{PLATFORM_TYPE}} copy=
+**** Problem solving
+If docker says something's wrong with /dev/loopX, most likely it's due to device mounting, execute:
+#+BEGIN_SRC
+docker-machine ssh default -- "losetup -a | cut -c1-10 | xargs -i losetup -d {}" || true 
+docker-machine ssh default -- "losetup -f" || true
+#+END_SRC
+
 *** Linux
 #+BEGIN_SRC
 make TARGET=(...) [PLATFORM=(...)][DISTRO_TAR_URL=http://.../Archive.tar.gz] linux (copy|tar)
@@ -34,7 +42,7 @@ make TARGET=(...) [PLATFORM=(...)][DISTRO_TAR_URL=http://.../Archive.tar.gz] lin
 
 **** Examples:
 To get an `.img` for flashing on an SD card execute:
-=make PLATFORM=rp3 linux=
+=make PLATFORM=rp3  linux=
 
 To get an `.tgz` archive as a backup:
 =make PLATFORM=oc2 TARGET=$(pwd) linux tar=

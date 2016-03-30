@@ -1,7 +1,11 @@
+IMAGE_NAME := "peelsky/arm-sdcard-builder"
 ID := $(shell losetup -f)
+PWD := $(shell pwd)
+
+ARCHIVE=
 TARGET_DIR := /backup
-PLATFORM := rp3
-DISTRO_TAR_URL := http://archlinuxarm.org/os/ArchLinuxARM-rpi-2-latest.tar.gz
+PLATFORM := rpi-3
+DISTRO_TAR_URL := http://archlinuxarm.org/os/ArchLinuxARM-$(PLATFORM)-latest.tar.gz
 
 default: prebuild $(PLATFORM) postbuild
 
@@ -14,18 +18,18 @@ postbuild:
 		umount root
 
 odroid:
-		parted -a optimal ${ID} mkpart primary ext4 8MiB 100%
+		parted ${ID} mktable gpt && parted -a optimal ${ID} mkpart primary ext4 8MiB 100%
 		mkfs.ext4 ${ID}p1
 		mkdir root
 		mount ${ID}p1 root
 		tar -xvf distro.tar.gz -C root
-		sh root/boot/fusing.sh ${ID}
+		cd root/boot && sh sd_fusing.sh ${ID}
 
-oc1: odroid
+odroid-c1: odroid
 
-oc2: odroid
+odroid-c2: odroid
 
-rp2:
+rpi-2:
 		parted ${ID} mktable msdos && parted -a optim ${ID} mkpart primary fat32 1MiB 100MiB && parted ${ID} set 1 boot on && parted -a optimal ${ID} mkpart primary ext4 100MiB 100%
 		mkfs.vfat ${ID}p1
 		mkdir boot
@@ -38,7 +42,7 @@ rp2:
 		mv root/boot/* boot
 		umount boot
 
-rp3: rp2
+rpi-3: rpi-2
 
 copy: default
 		cp sdcard.img ${TARGET_DIR}/
@@ -46,8 +50,12 @@ copy: default
 tar: default
 		tar -cvzf ${TARGET_DIR}/sdcard.img.tgz /app/sdcard.img
 
+mac: download
+		docker-machine ssh default -- "losetup -a | cut -c1-10 | xargs -i losetup -d {}" || true
+		docker-machine ssh default -- "losetup -f" || true
+		docker run --privileged -e PLATFORM=${PLATFORM} -v ${PWD}/Makefile:/app/Makefile -v ${PWD}:/backup -v ${PWD}/distro.tar.gz:/app/distro.tar.gz -it ${IMAGE_NAME} -e copy
+
 linux: download default
 
 download:
 		curl -o distro.tar.gz -L ${DISTRO_TAR_URL}
-
