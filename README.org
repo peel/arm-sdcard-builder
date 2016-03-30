@@ -1,10 +1,11 @@
-* Raspberry Pi Linux Tar SD Card Generator
+* ARM Linux Tar SD Card Generator
 ** Why
 Installing Linux from tar archives is cumbersome. 
 Then also OSX does not support EXT filesystems. For that on OSX to flash an SD card for ArchLinuxARM, Alpine etc. a VM has to be started.
 To make things easier the Docker image does exactly that. Makes it easy, fast and reproducible to generate and flash image to sd card on Mac and Linux.
 ** How
 *** Mac OSX
+From a repository clone:
 #+BEGIN_SRC
 make [DISTRO_TAR_URL=http://...] [PLATFORM=(rpi-2|rpi-3|odroid-c1|odroid-c2)] mac [tar]
 #+END_SRC
@@ -13,21 +14,17 @@ make [DISTRO_TAR_URL=http://...] [PLATFORM=(rpi-2|rpi-3|odroid-c1|odroid-c2)] ma
 =[DISTRO_TAR_URL]= - (NOT NEEDED WHEN USING ARCHlINUXARM) a fully qualified URL to your distro's tar.gz (ie. http://archlinuxarm.org/os/ArchLinuxARM-odroid-c2-latest.tar.gz)
 =(copy|tar)= - whether an img or tar.gz copy shall be created; mandatory when using =PLATFORM= parameter
 
-Or w/o cloning
+Or without cloning:
 #+BEGIN_SRC
-curl -o distro.tar.gz -L ${DISTRO_TAR_URL}
-docker run --privileged -e PLATFORM=${PLATFORM}  -v $(pwd):/backup -v $(pwd)/distro.tar.gz:/app/distro.tar.gz -it peelsky/arm-sdcard-builder -e copy
+docker run --privileged -e PLATFORM=${PLATFORM} -v $(pwd):/backup -it peelsky/arm-sdcard-builder -e download copy
 #+END_SRC
 
-**** Examples:
-To get an `.img` for flashing on an SD card execute:
-=docker run --rm --privileged -v $(pwd):/backup peelsky/rpi-sdcard-builder PLATFORM=rp3 copy=
+**** Raspberry Pi 3
+RPi-3 is the default platform of choice, thus you can simply run:
+#+BEGIN_SRC
+docker run --privileged -v $(pwd):/backup -it peelsky/arm-sdcard-builder -e download copy
+#+END_SRC
 
-To get an `.tgz` archive as a backup:
-=docker run --rm --privileged -v $(pwd):/backup peelsky/rpi-sdcard-builder PLATFORM=rp3 tar=
-
-To get an image of another distribution on an SD card, download the distro and execute:
-=docker run --rm --privileged -v $(pwd):/backup -v {{PATH TO A TGZ}}:/app/distro.tar.gz peelsky/rpi-sdcard-builder PLATFORM={{PLATFORM_TYPE}} copy=
 **** Problem solving
 If docker says something's wrong with /dev/loopX, most likely it's due to device mounting, execute:
 #+BEGIN_SRC
@@ -48,4 +45,7 @@ To get an `.tgz` archive as a backup:
 =make PLATFORM=oc2 TARGET=$(pwd) linux tar=
 ** Flashing
 /SIDE NOTE:/ To copy image onto an SD card execute from OSX:
-=sudo dd bs=1m if=sdcard.img of={{DISK_ID}}=
+#+BEGIN_SRC
+diskutil unmountDisk /dev/diskX
+sudo dd bs=1m if=sdcard.img of=/dev/diskX
+#+END_SRC

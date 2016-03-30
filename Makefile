@@ -53,9 +53,11 @@ tar: default
 mac: download
 		docker-machine ssh default -- "losetup -a | cut -c1-10 | xargs -i losetup -d {}" || true
 		docker-machine ssh default -- "losetup -f" || true
-		docker run --privileged -e PLATFORM=${PLATFORM} -v ${PWD}/Makefile:/app/Makefile -v ${PWD}:/backup -v ${PWD}/distro.tar.gz:/app/distro.tar.gz -it ${IMAGE_NAME} -e copy
+		docker run --privileged -e PLATFORM=${PLATFORM} -v ${PWD}/Makefile:/app/Makefile -v ${PWD}:/backup -v ${PWD}/distro.tar.gz:/app/distro.tar.gz ${IMAGE_NAME} -e copy
 
 linux: download default
 
 download:
-		curl -o distro.tar.gz -L ${DISTRO_TAR_URL}
+ifeq ($(wildcard $(PWD)/distro.tar.gz),)
+	curl -o distro.tar.gz -L ${DISTRO_TAR_URL}
+endif
