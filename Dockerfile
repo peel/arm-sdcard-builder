@@ -1,8 +1,6 @@
 FROM pritunl/archlinux
 MAINTAINER plimanowski+dev@protonmail.com
 
-ENV PLATFORM=rpi-3 DISTRO_TAR_URL=http://archlinuxarm.org/os/ArchLinuxARM-rpi-2-latest.tar.gz
-
 RUN mkdir /app
 WORKDIR /app
 

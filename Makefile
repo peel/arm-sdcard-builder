@@ -2,7 +2,6 @@ IMAGE_NAME := "peelsky/arm-sdcard-builder"
 ID := $(shell losetup -f)
 PWD := $(shell pwd)
 
-ARCHIVE=
 TARGET_DIR := /backup
 PLATFORM := rpi-3
 DISTRO_TAR_URL := http://archlinuxarm.org/os/ArchLinuxARM-$(PLATFORM)-latest.tar.gz
@@ -18,7 +17,8 @@ postbuild:
 		umount root
 
 odroid:
-		parted ${ID} mktable gpt && parted -a optimal ${ID} mkpart primary ext4 8MiB 100%
+		(echo o; echo p; echo n; echo p; echo 1; echo ; echo; echo w) | fdisk ${ID} || true
+		partprobe ${ID}
 		mkfs.ext4 ${ID}p1
 		mkdir root
 		mount ${ID}p1 root
@@ -53,11 +53,14 @@ tar: default
 mac: download
 		docker-machine ssh default -- "losetup -a | cut -c1-10 | xargs -i losetup -d {}" || true
 		docker-machine ssh default -- "losetup -f" || true
-		docker run --privileged -e PLATFORM=${PLATFORM} -v ${PWD}/Makefile:/app/Makefile -v ${PWD}:/backup -v ${PWD}/distro.tar.gz:/app/distro.tar.gz ${IMAGE_NAME} -e copy
+		docker run --privileged --rm -e PLATFORM=${PLATFORM} -v ${PWD}/Makefile:/app/Makefile -v ${PWD}:/backup -v ${PWD}/distro.tar.gz:/app/distro.tar.gz ${IMAGE_NAME} -e copy
 
 linux: download default
 
 download:
 ifeq ($(wildcard $(PWD)/distro.tar.gz),)
+ifeq ($(PLATFORM),rpi-3)
+		DISTRO_TAR_URL=http://archlinuxarm.org/os/ArchLinuxARM-rpi-2-latest.tar.gz
+endif
 	curl -o distro.tar.gz -L ${DISTRO_TAR_URL}
 endif

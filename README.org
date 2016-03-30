@@ -7,7 +7,7 @@ To make things easier the Docker image does exactly that. Makes it easy, fast an
 *** Mac OSX
 From a repository clone:
 #+BEGIN_SRC
-make [DISTRO_TAR_URL=http://...] [PLATFORM=(rpi-2|rpi-3|odroid-c1|odroid-c2)] mac [tar]
+make [DISTRO_TAR_URL=http://...] [PLATFORM=(rpi-2|rpi-3|odroid-c1|odroid-c2)] -e [download] mac [tar]
 #+END_SRC
 
 =[PLATFORM]= - sets image destitantion platform (default: rpi-3)
@@ -34,7 +34,7 @@ docker-machine ssh default -- "losetup -f" || true
 
 *** Linux
 #+BEGIN_SRC
-make TARGET=(...) [PLATFORM=(...)][DISTRO_TAR_URL=http://.../Archive.tar.gz] linux (copy|tar)
+make [PLATFORM=(...)][DISTRO_TAR_URL=http://.../Archive.tar.gz] linux (tar)
 #+END_SRC
 
 **** Examples:
@@ -44,8 +44,7 @@ To get an `.img` for flashing on an SD card execute:
 To get an `.tgz` archive as a backup:
 =make PLATFORM=oc2 TARGET=$(pwd) linux tar=
 ** Flashing
-/SIDE NOTE:/ To copy image onto an SD card execute from OSX:
 #+BEGIN_SRC
 diskutil unmountDisk /dev/diskX
-sudo dd bs=1m if=sdcard.img of=/dev/diskX
+sudo dd bs=1m if=sdcard.img of=/dev/rdiskX
 #+END_SRC
